@@ -28,8 +28,8 @@ public class NettyServerTemplate implements InitializingBean, DisposableBean {
         nettyServer = new NettyServer(serverPort, ssl);
     }
 
-    public void addHandlers(ChannelHandler channelHandler){
-
+    public void addServerCustomHandler(ChannelHandler channelHandler){
+        nettyServer.addServerHandler(channelHandler);
     }
 
     public void start(){

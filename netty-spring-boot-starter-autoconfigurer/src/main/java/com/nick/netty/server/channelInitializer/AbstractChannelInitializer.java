@@ -1,4 +1,4 @@
-package com.nick.netty.channelInitializer;
+package com.nick.netty.server.channelInitializer;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;

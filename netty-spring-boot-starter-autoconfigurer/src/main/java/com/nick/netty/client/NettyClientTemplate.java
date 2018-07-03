@@ -1,6 +1,7 @@
 package com.nick.netty.client;
 
 import com.nick.NettyProperties;
+import io.netty.channel.ChannelHandler;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -19,6 +20,7 @@ public class NettyClientTemplate implements InitializingBean, DisposableBean {
     //# ==========fields==========
     private NettyClient nettyClient;
 
+    //# ==========properties==========
     private NettyProperties nettyProperties;
 
     public NettyClientTemplate(NettyProperties nettyProperties) {
@@ -31,15 +33,23 @@ public class NettyClientTemplate implements InitializingBean, DisposableBean {
         serverPort = nettyProperties.getServerPort();
         ssl = nettyProperties.getSsl();
 
-        nettyClient = new NettyClient();
+        nettyClient = new NettyClient(serverHost, serverPort, ssl);
+    }
+
+    public void addClientCustomHandler(ChannelHandler channelHandler){
+        nettyClient.addClientHandler(channelHandler);
     }
 
     public void connect(){
         try {
-            nettyClient.connect(serverHost, serverPort, ssl);
+            nettyClient.connect(serverHost, serverPort);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean sendMsg(String msg){
+        return nettyClient.sendMsg(msg);
     }
 
     @Override

@@ -12,7 +12,14 @@ public class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.debug(ctx.channel().remoteAddress() + "-> Server :" + msg);
+        String message = (String) msg;
+        if(message.equals("Heartbeat")){
+            logger.debug(ctx.channel().remoteAddress() + "-> Server :" + msg);
+            ctx.writeAndFlush(msg);
+        }else{
+            ctx.fireChannelRead(msg);
+        }
+
     }
 
     @Override

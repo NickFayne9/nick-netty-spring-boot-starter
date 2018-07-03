@@ -59,18 +59,17 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("当前链路已经激活了，重连尝试次数重新置为0");
-        
+        logger.info("The current link has been activated and the number of reconnection attempts is reset to 0.");
         attempts = 0;
         ctx.fireChannelActive();
     }
     
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("链接关闭");
+        logger.info("Connection closed");
         if(reconnect){
-            System.out.println("链接关闭，将进行重连");
-            if (attempts < 12) {
+            logger.debug("The Connection is closed and will be reconnected");
+            if (attempts < 50) {
                 attempts++;
                 //重连的间隔时间会越来越长
                 int timeout = 2 << attempts;
@@ -100,10 +99,10 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
 
             //如果重连失败，则调用ChannelInactive方法，再次出发重连事件，一直尝试12次，如果失败则不再重连
             if (!succeed) {
-                System.out.println("reconnected failed");
+                logger.info("Reconnected failed.");
                 f.channel().pipeline().fireChannelInactive();
             }else{
-                System.out.println("reconnected success");
+                logger.info("Reconnected success.");
             }
         });
         

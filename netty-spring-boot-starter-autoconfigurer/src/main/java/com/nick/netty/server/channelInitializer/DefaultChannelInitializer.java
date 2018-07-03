@@ -1,16 +1,19 @@
-package com.nick.netty.channelInitializer;
+package com.nick.netty.server.channelInitializer;
 
 import com.nick.netty.server.handlerAdapter.AcceptorIdleStateTrigger;
 import com.nick.netty.server.handlerAdapter.HeartBeatServerHandler;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,8 +25,12 @@ public class DefaultChannelInitializer extends AbstractChannelInitializer {
 
     private Boolean ssl;
 
-    public DefaultChannelInitializer(boolean ssl) {
+    private List<ChannelHandler> customChannelHandlerList;
+
+    public DefaultChannelInitializer(boolean ssl, List<ChannelHandler> customChannelHandlerList) {
         this.ssl = ssl;
+        this.customChannelHandlerList = customChannelHandlerList;
+
         try {
             initChannelHandlers();
         } catch (Exception e) {
@@ -41,10 +48,11 @@ public class DefaultChannelInitializer extends AbstractChannelInitializer {
 
             URL rootCaUrl = this.getClass().getClassLoader().getResource("cert/server/ca.crt");
             File rootCaFile = new File(rootCaUrl.toURI());
-            SslContext sslCtx = SslContextBuilder.forClient()
-                    .keyManager(certChainFile, keyFile)
+            SslContext sslCtx = SslContextBuilder.forServer(certChainFile, keyFile)
                     .trustManager(rootCaFile)
+                    .clientAuth(ClientAuth.REQUIRE)
                     .build();
+
 
             addHandler(sslCtx.newHandler(ByteBufAllocator.DEFAULT));
         }
@@ -58,6 +66,10 @@ public class DefaultChannelInitializer extends AbstractChannelInitializer {
         addHandler(new StringEncoder());
 
         addHandler(new HeartBeatServerHandler());
+
+        for(ChannelHandler channelHandler : customChannelHandlerList){
+            addHandler(channelHandler);
+        }
     }
 
 }

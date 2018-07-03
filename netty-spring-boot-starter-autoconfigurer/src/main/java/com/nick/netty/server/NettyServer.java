@@ -1,10 +1,10 @@
 package com.nick.netty.server;
 
-import com.nick.netty.channelInitializer.CustomChannelInitializer;
-import com.nick.netty.channelInitializer.DefaultChannelInitializer;
+import com.nick.netty.server.channelInitializer.DefaultChannelInitializer;
 import com.nick.netty.server.handlerAdapter.AcceptorIdleStateTrigger;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NettyServer {
 
@@ -26,29 +28,21 @@ public class NettyServer {
 
     private boolean ssl;
 
-    private CustomChannelInitializer customChannelInitializer;
+    private List<ChannelHandler> customChannelHandlerList = new ArrayList<>();
 
     public NettyServer(int port, boolean ssl) {
         this.port = port;
         this.ssl = ssl;
     }
 
-    public void setCustomChannelInitializer(CustomChannelInitializer customChannelInitializer) {
-        this.customChannelInitializer = customChannelInitializer;
-    }
-
     public void start() {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-            if(customChannelInitializer == null){
-                customChannelInitializer = new CustomChannelInitializer();
-            }
-
             ServerBootstrap sbs = new ServerBootstrap().group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class).handler(new LoggingHandler(LogLevel.INFO))
                     .localAddress(new InetSocketAddress(port))
-                    .childHandler(new DefaultChannelInitializer(ssl))
+                    .childHandler(new DefaultChannelInitializer(ssl, customChannelHandlerList))
                     //.childHandler(customChannelInitializer)
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -61,6 +55,10 @@ public class NettyServer {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    public void addServerHandler(ChannelHandler channelHandler){
+        customChannelHandlerList.add(channelHandler);
     }
 
 }
