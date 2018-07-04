@@ -43,7 +43,7 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
     private volatile boolean reconnect = true;
     private int attempts;
 
-    private List<ChannelHandler> channelHandlerList = new ArrayList<>();
+    private List<ChannelHandler> channelHandlerList;
     private List<ChannelHandler> sharableCustomChannelHandlerList = new ArrayList<>();
     
     public ConnectionWatchdog(Bootstrap bootstrap, Timer timer, int port,String host, boolean reconnect, boolean ssl) {
@@ -123,6 +123,7 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
      */
     @Override
     public ChannelHandler[] handlers() throws Exception {
+        channelHandlerList = new ArrayList<>();
 
         //add SSL handler
         if(ssl){
@@ -142,6 +143,9 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
             channelHandlerList.add(sslCtx.newHandler(ByteBufAllocator.DEFAULT));
         }
 
+        //add connection watch dog
+        channelHandlerList.add(this);
+
         //add decoder handlers
         channelHandlerList.add(new StringDecoder());
 
@@ -158,9 +162,7 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
         channelHandlerList.add(new HeartbeatClientHandler());
 
         //add sharable custom channel handlers
-        for(ChannelHandler channelHandler : sharableCustomChannelHandlerList){
-            channelHandlerList.add(channelHandler);
-        }
+        channelHandlerList.addAll(sharableCustomChannelHandlerList);
 
         //Return: list to array
         ChannelHandler[] channelHandlers = new ChannelHandler[channelHandlerList.size()];
