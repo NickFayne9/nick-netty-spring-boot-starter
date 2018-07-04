@@ -42,7 +42,7 @@ public class NettyClientTemplate implements InitializingBean, DisposableBean {
 
     public void connect(){
         try {
-            nettyClient.connect(serverHost, serverPort);
+            nettyClient.connect();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -16,6 +16,9 @@ public class NettyClient {
     
     private final HashedWheelTimer timer = new HashedWheelTimer();
 
+    private String host;
+    private Integer port;
+
     private Bootstrap boot;
     private EventLoopGroup group;
     private ConnectionWatchdog connectionWatchdog;
@@ -23,6 +26,9 @@ public class NettyClient {
     private Channel channel;
 
     public NettyClient(String host, int port, boolean ssl) {
+        this.host = host;
+        this.port = port;
+
         group = new NioEventLoopGroup();
         boot = new Bootstrap();
         boot.group(group).
@@ -32,7 +38,8 @@ public class NettyClient {
         connectionWatchdog = new ConnectionWatchdog(boot, timer, port, host, true, ssl);
     }
 
-    public void connect(String host, int port) throws Exception {
+    public void connect() throws Exception {
+
         ChannelFuture future;
         try {
             synchronized (boot) {
