@@ -44,6 +44,7 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
     private int attempts;
 
     private List<ChannelHandler> channelHandlerList = new ArrayList<>();
+    private List<ChannelHandler> sharableCustomChannelHandlerList = new ArrayList<>();
     
     public ConnectionWatchdog(Bootstrap bootstrap, Timer timer, int port,String host, boolean reconnect, boolean ssl) {
         this.bootstrap = bootstrap;
@@ -53,7 +54,15 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
         this.reconnect = reconnect;
         this.ssl = ssl;
     }
-    
+
+    /**
+     * Add sharable custom handlers after method handlers
+     * @param channelHandler
+     */
+    public void addSharableCustomHandler(ChannelHandler channelHandler){
+        sharableCustomChannelHandlerList.add(channelHandler);
+    }
+
     /**
      * channel链路每次active的时候，将其连接的次数重新☞ 0
      */
@@ -147,6 +156,11 @@ public class ConnectionWatchdog extends ChannelInboundHandlerAdapter implements 
 
         //add heartbeat handlers
         channelHandlerList.add(new HeartbeatClientHandler());
+
+        //add sharable custom channel handlers
+        for(ChannelHandler channelHandler : sharableCustomChannelHandlerList){
+            channelHandlerList.add(channelHandler);
+        }
 
         //Return: list to array
         ChannelHandler[] channelHandlers = new ChannelHandler[channelHandlerList.size()];

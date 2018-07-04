@@ -22,8 +22,6 @@ public class NettyClient {
 
     private Channel channel;
 
-    private List<ChannelHandler> channelHandlerList = new ArrayList<>();
-
     public NettyClient(String host, int port, boolean ssl) {
         group = new NioEventLoopGroup();
         boot = new Bootstrap();
@@ -42,9 +40,6 @@ public class NettyClient {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         ch.pipeline().addLast(connectionWatchdog.handlers());
-                        for(ChannelHandler channelHandler : channelHandlerList){
-                            ch.pipeline().addLast(channelHandler);
-                        }
                     }
                 });
 
@@ -58,7 +53,7 @@ public class NettyClient {
     }
 
     void addClientHandler(ChannelHandler channelHandler){
-        channelHandlerList.add(channelHandler);
+        connectionWatchdog.addSharableCustomHandler(channelHandler);
     }
 
     boolean sendMsg(String msg){
